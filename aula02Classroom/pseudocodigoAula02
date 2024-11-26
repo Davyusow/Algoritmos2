@@ -1,0 +1,110 @@
+contador = 1 //Cria uma variável primitiva genérica(pode ser int,double,float,long etc) neste caso um inteiro que recebe 1;
+//formas que pode ser escrito:
+contador = 1;
+inteiro contador = 1
+contador:inteiro = 1
+contador:inteiro = 1;
+inteiro contador = 1; //provavelmente vou escolher esse
+e = &&
+ou = ||
+xor = ^
+>,<,>=,<=,==,!=
++,-,*,/,%(resto inteiro)
+se<condição 1>
+	<comandos 1>
+senão
+	<comandos 2>
+	
+ou
+
+se<condição 1>
+	<comandos 1>
+senão se<condição 2>
+	<comandos 2>
+
+pode usar chaves ex:
+se<condição 1>{
+	<comandos 1>
+	}
+senão se<condição 2>{
+	<comandos 2>
+}
+
+enquanto<condição>{
+	<comandos1>
+	}
+	
+para <cont> = <v-ini> até <v-fim> passo <d>
+	<comandos1>
+	
+ex:
+para inteiro contador = 0 até contador = 100 passo contador++{
+	contador * valor;
+}
+--------------------------------------------------------------
+procedimento olaMundo(){
+	imprimir("Olá, Mundo!");
+}
+
+procedimento inteiro soma(inteiro valor1, inteiro valor2){
+	retorne valor1 + valor2;
+}
+
+//declaração de Arranjo com capacidade 10
+listaNumeros = Array<inteiro>[10];
+
+//declaração de Arranjo bidimensional
+matriz = Array<inteiro>[10][5];
+
+//declaração de Arranjo tridimensional
+imagemColorida = Array<real>[128][128][3];
+--------------------------------------------------------------
+//Struct
+
+registro Aluno{
+	inteiro matricula;
+	String nome;
+	inteiro cpf;
+}
+
+//Construtor default não recebe parâmetros
+aluno = Aluno();
+aluno.nome = "Pedro";
+--------------------------------------------------------------
+Exemplo slide 2 pg23
+
+//x -> vetor, n -> tamanho do vetor
+procedimento norma2(inteiro x,inteiro n){
+	int soma = 0;
+	para inteiro i = 1 até n passo i++{
+		soma += x[i]*x[i]
+	}
+	retorne sqrt(soma) //sqrt é uma função pré-definida(raíz quadrada)
+}
+--------------------------------------------------------------
+//Insertion-Sort exemplo fora do Slide! x -> vetor, tamanho -> tamanho do vetor
+
+procedimento insertionSort(inteiro x[],inteiro tamanho){
+inteiro ida,volta,chave;
+para ida = 0 até tamanho passo ida ++{
+	se x[ida] > x[ida+1]{
+	chave = ida[x+1];
+	x[ida+1] = x[ida];
+	x[ida] = chave;
+	volta = ida - 1;
+		enquanto volta >= 0{
+			se chave < x[volta]{
+				x[volta+1] = x[volta];
+				x[volta] = chave;
+			}senão{
+				pare; //break
+			}
+			volta = volta - 1
+			}
+		}
+	}
+}
+Continuar página 31
+
+
+
