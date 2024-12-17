@@ -3,16 +3,9 @@
 #include "time.h"
 #include "stdbool.h"
 #include "string.h"
+#include "unistd.h"
 
 int tamanho = 1;
-
-typedef struct
-{ // estrutura dos times;
-    int indiceInicio;
-    int indiceFinal;
-    int qtdLutadores;
-    int qtdVivos;
-} Times;
 
 typedef struct
 { // estrutura do objeto base do lutador;
@@ -25,19 +18,26 @@ typedef struct
     bool vivo;
     int equipe;
 } Lutadores;
+typedef struct
+{ // estrutura dos times;
+    int qtdLutadores;
+    int qtdVivos;
+    int score;
+    Lutadores *lista;
+} Times;
 
-void toStringLutadores(Lutadores *lutador, int posicao)
+void toStringLutadores(Lutadores lista)
 { // imprime todas as infromações de um lutador especifico
-    if (lutador[posicao].existe == 1)
+    if (lista.existe == 1)
     {
-        printf("\n Nome: %s", lutador[posicao].nome);
-        printf("\n Id: %s", lutador[posicao].id);
-        printf("\n Dano: %i", lutador[posicao].dano);
-        printf("\n Vida: %i", lutador[posicao].vida);
-        printf("\n Iniciativa: %i", lutador[posicao].iniciativa);
+        printf("\n Nome: %s", lista.nome);
+        printf("\n Id: %s", lista.id);
+        printf("\n Dano: %i", lista.dano);
+        printf("\n Vida: %i", lista.vida);
+        printf("\n Iniciativa: %i", lista.iniciativa);
         printf("\n Existe: Lutador existe");
-        printf("\n Time: %i", lutador[posicao].equipe);
-        if (lutador[posicao].vivo)
+        printf("\n Time: %i", lista.equipe);
+        if (lista.vivo)
         {
             printf("\n Estado: Vivo\n");
         }
@@ -48,18 +48,18 @@ void toStringLutadores(Lutadores *lutador, int posicao)
     }
     else
     {
-        printf("\n Este lutador não existe!");
     }
 }
 
-int novoLutador(Lutadores *lutador1, int posicao, Times *timeTemp, int numTime)
+int novoLutador(int posicao, Times *timeTemp, int numTime, Times time2)
 { // função que define os dados de um lutador;
-    if (posicao < timeTemp->indiceInicio || posicao >= timeTemp->indiceFinal)
+
+    if (posicao < 0 || posicao > timeTemp->qtdLutadores)
     { // verifica se está dentro do vetor;
         printf("\nPosição Inválida!\n");
         return 0;
     }
-    if (lutador1[posicao].existe == 1)
+    if (timeTemp->lista[posicao].existe == 1)
     { // verifica se o lutador já existe;
         printf("\nLutador Já existe!\n");
         return 0;
@@ -71,91 +71,107 @@ int novoLutador(Lutadores *lutador1, int posicao, Times *timeTemp, int numTime)
     getchar();
     for (int i = 0; i < tamanho; i++)
     {
-        if (strcmp(lutador1[i].id, idTemp) == 0 && lutador1[i].existe == 1)
+        if (strcmp(timeTemp->lista[i].id, idTemp) == 0 && timeTemp->lista[i].existe == 1)
         {
             printf("\nJá existe um lutador com este ID!\n");
+            timeTemp->lista[posicao].existe = 0;
             return 0;
         }
     }
-    strcpy(lutador1[posicao].id, idTemp); // registra os dados restantes do lutado;
+    for (int i = 0; i < tamanho; i++)
+    {
+        if (strcmp(time2.lista[i].id, idTemp) == 0 && time2.lista[i].existe == 1)
+        {
+            printf("\nJá existe um lutador com este ID!\n");
+            timeTemp->lista[posicao].existe = 0;
+            return 0;
+        }
+    }
+    strcpy(timeTemp->lista[posicao].id, idTemp); // registra os dados restantes do lutado;
     printf("\nDigite o nome do Lutador: \n");
-    scanf("%s", lutador1[posicao].nome);
+    scanf("%s", timeTemp->lista[posicao].nome);
     getchar();
-    lutador1[posicao].iniciativa = rand() % 99 + 1;
-    lutador1[posicao].vida = 100;
-    lutador1[posicao].dano = rand() % 9 + 1;
-    lutador1[posicao].existe = 1;
-    lutador1[posicao].equipe = numTime;
-    lutador1[posicao].vivo = true;
+    timeTemp->lista[posicao].iniciativa = rand() % 99 + 1;
+    timeTemp->lista[posicao].vida = 100;
+    timeTemp->lista[posicao].dano = rand() % 9 + 1;
+    timeTemp->lista[posicao].existe = 1;
+    timeTemp->lista[posicao].equipe = numTime;
+    timeTemp->lista[posicao].vivo = true;
     timeTemp->qtdVivos += 1;
-
+    timeTemp->qtdLutadores += 1;
     tamanho++;
     return 1;
 }
 
-void insereTimes(Times *timeTemp, Lutadores *lista, int numTime)
+void insereTimes(Times *timeTemp, int numTime, Times time2)
 {
     char escolha;
-    
-    int cont =(int) timeTemp->indiceInicio;
+
+    int cont = 0;
     printf("\nINSIRA OS LUTADORES DO TIME %i\n", numTime);
     do
     {
-        novoLutador(lista, cont, timeTemp, numTime);
 
         printf("\nDeseja adicionar um novo lutador?\n(s/n)\n");
         scanf(" %c", &escolha);
         getchar();
-        
+
         switch (escolha)
         {
         case 's':
         case 'S':
-            lista = realloc(lista,(timeTemp->indiceFinal + 1)*sizeof(Lutadores));
-            timeTemp->indiceFinal++;
+            novoLutador(cont, timeTemp, numTime, time2);
+            Lutadores *temp = realloc(timeTemp->lista, (timeTemp->qtdLutadores + 1) * sizeof(Lutadores));
+            if (temp == NULL)
+            {
+                printf("Erro na alocação de memória!\n");
+                return;
+            }
+            timeTemp->lista = temp;
             cont++;
             break;
 
         case 'n':
         case 'N':
-            cont = timeTemp->indiceFinal;
+            cont = timeTemp->qtdLutadores + 1;
             break;
 
         default:
             printf("\nTecla inválida!\n");
             break;
         }
-    } while (cont < timeTemp->indiceFinal);
+    } while (cont <= timeTemp->qtdLutadores);
 }
 
-void alocacaoLutadores(Lutadores *lista, Times *time1, Times *time2)
+void alocacaoLutadores(Times *time1, Times *time2)
 {
-    insereTimes(time1, lista, 1);
-    time1->qtdLutadores = time1->indiceFinal - time1->indiceInicio;
+    insereTimes(time1, 1, *time2);
 
-    time2->indiceInicio = time1->indiceFinal+1;
-    time2->indiceFinal = time2->indiceInicio+1;
-    
-    printf("\ndebug indice inicio = %i",time1->indiceInicio);
-    printf("\ndebug indice final = %i",time1->indiceFinal);
-    printf("\ndebug indice inicio = %i",time2->indiceInicio);
-    printf("\ndebug indice final = %i",time2->indiceFinal);
-    
-    insereTimes(time2, lista, 2);
-    time2->qtdLutadores = time2->indiceFinal - time1->indiceFinal;
+    insereTimes(time2, 2, *time1);
 }
 
-Lutadores *Buscar(Lutadores *lista, char *id, int tam)
+Lutadores *Buscar(Times time1, Times time2, char *id)
 {
 
-    for (int i = 0; i < tam; i++)
+    for (int i = 0; i < time1.qtdLutadores; i++)
     {
-        if (lista->existe == 1)
+        if (time1.lista[i].existe == 1)
         {
-            if (strcmp(lista[i].id, id) == 0)
+            if (strcmp(time1.lista[i].id, id) == 0)
             {
-                toStringLutadores(lista, i);
-                return &lista[i];
+                toStringLutadores(time1.lista[i]);
+                return &time1.lista[i];
+            }
+        }
+    }
+    for (int i = 0; i < time2.qtdLutadores; i++)
+    {
+        if (time2.lista[i].existe == 1)
+        {
+            if (strcmp(time2.lista[i].id, id) == 0)
+            {
+                toStringLutadores(time2.lista[i]);
+                return &time1.lista[i];
             }
         }
     }
@@ -165,17 +181,16 @@ Lutadores *Buscar(Lutadores *lista, char *id, int tam)
     return NULL;
 }
 
-int fugaLutador(Lutadores *lista, char *id, int tam)
+int fugaLutador(Times time1, Times time2, char *id)
 {
-    Lutadores *temp = Buscar(lista, id, tam);
+    Lutadores *temp = Buscar(time1, time2, id);
 
     if (temp == NULL)
     {
         printf("\nLutador não encontrado!");
         return 0;
     }
-
-    if (temp->vivo)
+    else if (temp->vivo)
     {
         temp->existe = 0;
         printf("\nLutador removido com sucesso!");
@@ -188,23 +203,24 @@ int fugaLutador(Lutadores *lista, char *id, int tam)
     return 0;
 }
 
-void ordenadorIniciativa(Lutadores *lista, Times timeTemp)
-{                    // inicio da função, parametros x -> vetor, tam -> tamanho do vetor
-    int i, j, chave; // i laço da primeira busca, j -> laço da ordenação, chave é o valor sendo comparado
-    for (i = timeTemp.indiceInicio; i < timeTemp.indiceFinal - 1; i++)
+void ordenadorIniciativa(Times timeTemp)
+{ // inicio da função, parametros x -> vetor, tam -> tamanho do vetor
+    int i, j;
+    Lutadores chave; // i laço da primeira busca, j -> laço da ordenação, chave é o valor sendo comparado
+    for (i = 0; i < timeTemp.qtdLutadores - 1; i++)
     { // percorre os valores do vetor
-        if (lista[i].iniciativa < lista[i + 1].iniciativa)
-        {                                                  // se o valor atual for maior que o valor da frente
-            chave = lista[i + 1].iniciativa;               // o novo item comparado é o i+1
-            lista[i + 1].iniciativa = lista[i].iniciativa; // o valor da frente volta
-            lista[i].iniciativa = chave;                   // o valor comparavel vai pra posição atual
-            j = i - 1;                                     // valor para a verificação da lista de maneira decrementativa
-            while (j >= timeTemp.indiceInicio)
+        if (timeTemp.lista[i].iniciativa < timeTemp.lista[i + 1].iniciativa)
+        {                                              // se o valor atual for maior que o valor da frente
+            chave = timeTemp.lista[i + 1];             // o novo item comparado é o i+1
+            timeTemp.lista[i + 1] = timeTemp.lista[i]; // o valor da frente volta
+            timeTemp.lista[i] = chave;                 // o valor comparavel vai pra posição atual
+            j = i - 1;                                 // valor para a verificação da lista de maneira decrementativa
+            while (j >= 0)
             { // enquanto o j estiver no array
-                if (chave > lista[j].iniciativa)
-                {                                                  // se o valor comparado é menor que o de trás
-                    lista[j + 1].iniciativa = lista[j].iniciativa; // então troca
-                    lista[j].iniciativa = chave;                   // então troca
+                if (chave.iniciativa > timeTemp.lista[j].iniciativa)
+                {                                              // se o valor comparado é menor que o de trás
+                    timeTemp.lista[j + 1] = timeTemp.lista[j]; // então troca
+                    timeTemp.lista[j] = chave;                 // então troca
                 }
                 else
                 {          // senão
@@ -214,6 +230,18 @@ void ordenadorIniciativa(Lutadores *lista, Times timeTemp)
             }
         }
     }
+}
+
+void Combate(Lutadores *lista1, Lutadores *lista2, int num1, int num2)
+{
+    printf("\nO Lutador %s ataca causando %i de dano!", lista1[num1].nome, lista1[num1].dano);
+    printf("\nO Lutador %s ataca causando %i de dano!", lista2[num2].nome, lista2[num2].dano);
+    lista1[num1].vida = lista1[num1].vida - lista2[num2].dano;
+    lista2[num2].vida = lista2[num2].vida - lista1[num1].dano;
+    printf("\nVida de %s: %i", lista1[num1].nome, lista1[num1].vida);
+    printf("\nVida de %s: %i", lista2[num2].nome, lista2[num2].vida);
+    printf("\n");
+    sleep(1);
 }
 
 int main(void)
@@ -227,12 +255,10 @@ int main(void)
     Times time1;
     Times time2;
 
-    Lutadores *listaLutadores;
-    listaLutadores = malloc(sizeof(Lutadores) * 1); // tamanho do array
+    time1.lista = malloc(sizeof(Lutadores) * 1); // tamanho do array
+    time2.lista = malloc(sizeof(Lutadores) * 1);
     // alocação dos lutadores;
-    time1.indiceInicio = 0;
-    time1.indiceFinal = 1;
-    time2.indiceFinal = 0;
+
     time1.qtdLutadores = 0;
     time2.qtdLutadores = 0;
     time1.qtdVivos = 0;
@@ -241,7 +267,7 @@ int main(void)
     char busca[30];
     int verificador = 0;
     int temp;
-    do
+    do /// Fase de organização
     {
         printf("\n    Fase de Organização!    ");
         printf("\nDigite 1. para adicionar lutadores.");
@@ -256,7 +282,7 @@ int main(void)
         {
         case '1':
             system("clear");
-            alocacaoLutadores(listaLutadores, &time1, &time2);
+            alocacaoLutadores(&time1, &time2);
             verificador++;
             break;
         case '2':
@@ -267,9 +293,13 @@ int main(void)
             }
             else
             {
-                for (int i = 0; i < time2.indiceFinal; i++)
+                for (int i = 0; i < time1.qtdLutadores; i++)
                 {
-                    toStringLutadores(listaLutadores, i);
+                    toStringLutadores(time1.lista[i]);
+                }
+                for (int i = 0; i < time2.qtdLutadores; i++)
+                {
+                    toStringLutadores(time2.lista[i]);
                 }
             }
             break;
@@ -285,7 +315,7 @@ int main(void)
                 printf("\nDigite o id do lutador: ");
                 scanf(" %s", busca);
                 getchar();
-                Buscar(listaLutadores, busca, time2.indiceFinal);
+                Buscar(time1, time2, busca);
             }
             break;
 
@@ -297,7 +327,7 @@ int main(void)
             }
             else
             {
-                printf("\n Existem %i lutador(es) na partida", time2.indiceFinal);
+                printf("\n Existem %i lutador(es) na partida", time1.qtdLutadores + time2.qtdLutadores);
                 printf("\n Onde o time 1 possui %i lutador(es)", time1.qtdLutadores);
                 printf("\n E o time 2 possui %i lutador(es)", time2.qtdLutadores);
                 printf("\n Tais que %i lutadores do time1 estão vivos", time1.qtdVivos);
@@ -316,8 +346,8 @@ int main(void)
             {
                 printf("\nDigite o id do lutador: ");
                 scanf(" %s", busca);
-                getchar();
-                temp = fugaLutador(listaLutadores, busca, time2.indiceFinal);
+
+                temp = fugaLutador(time1, time2, busca);
                 if (temp == 1)
                 {
                     time1.qtdLutadores--;
@@ -349,13 +379,113 @@ int main(void)
             break;
         }
     } while (escolha != '6' || verificador < 1);
-    ordenadorIniciativa(listaLutadores, time1);
-    ordenadorIniciativa(listaLutadores, time2);
-    system("clear");
-    for (int i = 0; i < time2.indiceFinal; i++)
+    // pós organização
+    ordenadorIniciativa(time1);
+    ordenadorIniciativa(time2);
+
+    Lutadores adversario1[time1.qtdLutadores];
+    Lutadores adversario2[time2.qtdLutadores];
+
+    int num1 = 0;
+    for (int i = 0; i < time1.qtdLutadores; i++)
     {
-        toStringLutadores(listaLutadores, i);
+        if (time1.lista[i].existe == 1)
+        {
+            adversario1[num1] = time1.lista[i];
+            num1++;
+        }
     }
+    num1 = 0;
+    for (int i = 0; i < time2.qtdLutadores; i++)
+    {
+        if (time2.lista[i].existe == 1)
+        {
+            adversario2[num1] = time2.lista[i];
+            num1++;
+        }
+    }
+
+    system("clear");
+    printf("\nLista de lutadores vivos: \n");
+    for (int i = 0; i < time1.qtdLutadores; i++)
+    {
+        toStringLutadores(time1.lista[i]);
+    }
+    for (int i = 0; i < time2.qtdLutadores; i++)
+    {
+        toStringLutadores(time2.lista[i]);
+    }
+    printf("\nLista de lutadores mortos: \n");
+    for (int i = 0; i < time1.qtdLutadores; i++)
+    {
+        if (!adversario1[i].vivo)
+        {
+            toStringLutadores(adversario1[i]);
+        }
+    }
+    for (int i = 0; i < time2.qtdLutadores; i++)
+    {
+        if (!adversario1[i].vivo)
+        {
+            toStringLutadores(adversario1[i]);
+        }
+    }
+
+    /*Fase de Combate*/
+    num1 = 0;
+    int num2 = 0;
+    do
+    {
+        printf("\n      Fase De Combate!        ");
+
+        while ((adversario1[num1].vida>0) & (adversario2[num2].vida>0))
+        {
+            Combate(adversario1, adversario2, num1, num2);
+        }
+        if (adversario1[num1].vida <= 0)
+        {
+            printf("\nO lutador %s derrotou o lutador %s!", adversario2[num2].nome, adversario1[num1].nome);
+            num1++;
+            time1.qtdVivos--;
+            ++time2.score;
+            printf("\nA pontuação agora é: Time1 %i X Time2 %i", time1.score, time2.score);
+        }
+        if (adversario2[num2].vida <= 0)
+        {
+            printf("\nO lutador %s derrotou o lutador %s!", adversario1[num1].nome, adversario2[num2].nome);
+            num2++;
+            time2.qtdVivos--;
+            ++time1.score;
+            printf("\nA pontuação agora é: Time1 %i X Time2 %i", time1.score, time2.score);
+        }
+        if (num1>time1.qtdVivos)
+        break;
+        if (num2>time2.qtdVivos)
+        break;
+    } while (time1.qtdVivos > 0 || time2.qtdVivos > 0 || time1.score < 20 || time2.score < 20);
+
+    if (time2.qtdVivos ==0)
+    {
+        printf("\nO Time 1 sai vitorioso por ter derrotado todos os lutadores do time2!");
+    }
+    else if (time1.score >= 20)
+    {
+        printf("\nO Time 1 sai vitorioso por ter alcançado 20 pontos!");
+    }
+
+    if (time1.qtdVivos==0)
+    {
+        printf("\nO Time 2 sai vitorioso por ter derrotado todos os lutadores do time1!");
+    }
+    else if (time2.score >= 20)
+    {
+        printf("\nO Time 2 sai vitorioso por ter alcançado 20 pontos!");
+    }
+    if(time1.score==time2.score){
+        printf("\nEMPATE!");
+    }
+
+    // Fase de resultados
 
     return 0;
 }
