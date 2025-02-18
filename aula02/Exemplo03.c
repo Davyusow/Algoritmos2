@@ -8,6 +8,6 @@ int main(void)
     *y = 20;
     int z = sizeof(int);
     printf(" *y = %i \n z = %i \n", *y, z);
-
+    free(y);
     return 0;
 }
